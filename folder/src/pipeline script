@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git url: 'https://github.com/galkamay/flaskapp_ci-cd.git', branch: 'main'
+            }
+        }
+
+        stage('Build and Test') {
+            steps {
+                script {
+                    sh 'docker-compose build'
+
+ 
+                    sh 'docker-compose run web pytest'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+            }
+            steps {
+                script {
+                    sh 'docker-compose down'
+
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo "The build failed!"
+        }
+    }
+}
