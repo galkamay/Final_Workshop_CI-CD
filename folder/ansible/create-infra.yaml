@@ -1,0 +1,57 @@
+- name: Setup web server
+  hosts: app
+  user: ubuntu
+  become: True
+  gather_facts: True
+
+  tasks:
+    - name: Update apt repository
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - git
+          - python3-pip
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add Docker APT repository
+      shell: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && sudo add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable'"
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Clone app repository
+      git:
+        repo: 'git@github.com:galkamay/Final_Workshop_CI-CD.git'
+        dest: /home/ubuntu/app
+
+    - name: Build Docker image
+      shell: "docker build -t your_dockerhub_username/app:latest ."
+      args:
+        chdir: /home/ubuntu/app
+
+    - name: Push Docker image to DockerHub
+      shell: "docker push your_dockerhub_username/app:latest"
+
+    - name: Start Docker container using docker-compose
+      shell: "docker-compose up -d"
+      args:
+        chdir: /home/ubuntu/app
