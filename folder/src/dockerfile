@@ -1,3 +1,18 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: "app.py"
+      FLASK_ENV: "development"
+    volumes:
+      - .:/app
+    command: flask run --host=0.0.0.0
+
+ubuntu@ip-10-0-0-227:~/flaskapp_ci-cd$ ^C
+ubuntu@ip-10-0-0-227:~/flaskapp_ci-cd$ cat dockerfile
 FROM python:3.9-slim
 
 WORKDIR /app
@@ -9,4 +24,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["python", "src/flask/app.py"]
